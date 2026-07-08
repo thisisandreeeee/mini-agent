@@ -1,1 +1,1 @@
-openai
+mistralai==2.6.0
