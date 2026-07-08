@@ -10,20 +10,32 @@ Install `uv`:
 curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
-Create the environment and install the project:
+Create a virtual environment:
 
 ```sh
-uv sync
+uv venv
 ```
 
-Run Python inside the environment:
+Install dependencies:
 
 ```sh
-uv run python
+uv pip install -r requirements.txt
 ```
 
-Add dependencies later with:
+Activate the environment:
 
 ```sh
-uv add <package>
+source .venv/bin/activate
+```
+
+Run Python:
+
+```sh
+python
+```
+
+Add dependencies later by editing `requirements.txt`, then rerun:
+
+```sh
+uv pip install -r requirements.txt
 ```
