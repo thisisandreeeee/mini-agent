@@ -28,10 +28,12 @@ Activate the environment:
 source .venv/bin/activate
 ```
 
-Run Python:
+## Usage
+
+Run the agent with a task:
 
 ```sh
-python
+python -m mini_agent.main "xyz"
 ```
 
 Add dependencies later by editing `requirements.txt`, then rerun:
