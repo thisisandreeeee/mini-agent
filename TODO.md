@@ -42,3 +42,15 @@ Connect the agent to a filesystem or Playwright MCP server and complete a task u
 - [ ] Apply the same approval policy to mutating MCP tools.
 
 **Done:** The agent discovers and safely uses tools provided by a filesystem or Playwright MCP server.
+
+## 5. Retrieval-augmented generation
+
+Give the agent a question whose answer is contained in a collection of project documents.
+
+- [ ] Split documents into chunks and create embeddings.
+- [ ] Store and retrieve chunks by semantic similarity.
+- [ ] Add the most relevant chunks to the model context.
+- [ ] Cite the source document for each supported claim.
+- [ ] Evaluate retrieval quality and handle questions without relevant evidence.
+
+**Done:** The agent answers from retrieved evidence, cites its sources, and does not invent an answer when the documents are insufficient.
