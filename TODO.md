@@ -21,7 +21,7 @@ Add `delete_file(path)` and request a project cleanup.
 
 **Done:** Nothing is deleted without explicit approval.
 
-## 2. State and resumability
+## 3. State and resumability
 
 Terminate an agent mid-task, then restart it.
 
@@ -30,3 +30,15 @@ Terminate an agent mid-task, then restart it.
 - [ ] Make operations idempotent where possible.
 
 **Done:** A resumed run produces the same result as an uninterrupted run.
+
+## 4. MCP integration
+
+Connect the agent to a filesystem or Playwright MCP server and complete a task using its tools.
+
+- [ ] Configure and connect to an MCP server.
+- [ ] Discover its available tools and expose their schemas to the model.
+- [ ] Execute MCP tool calls and return their results to the agent loop.
+- [ ] Handle connection failures, tool errors, and timeouts.
+- [ ] Apply the same approval policy to mutating MCP tools.
+
+**Done:** The agent discovers and safely uses tools provided by a filesystem or Playwright MCP server.
