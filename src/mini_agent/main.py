@@ -2,8 +2,9 @@ import argparse
 import os
 
 from mini_agent.agent import Agent
+from mini_agent.tool_registry import DEFAULT_TOOLS
+from mistralai.client import Mistral
 from loguru import logger
-from pprint import pprint
 
 
 def main() -> None:
@@ -13,7 +14,7 @@ def main() -> None:
 
     api_key = os.environ["MISTRAL_API_KEY"]
     logger.info("Start agent run")
-    agent = Agent(api_key)
+    agent = Agent(client=Mistral(api_key=api_key), tools=DEFAULT_TOOLS)
     result = agent.run(args.task)
     logger.info(f"Run complete: {result}")
 
