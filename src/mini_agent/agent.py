@@ -1,90 +1,81 @@
 import json
+from typing import Any
 
-from mistralai.client import Mistral
 from loguru import logger
-from pprint import pformat
+from mistralai.client import Mistral
 
-from src.mini_agent import tools
+from .tool_registry import Tool
 
-SYSTEM_PROMPT = "You are a helpful assistant with access to tools. If a tool does not help, simply return the response. If you get the same result from multiple tool calls, don't try again."
+SYSTEM_PROMPT = (
+    "You are a helpful assistant with access to tools. If a tool does not help, simply return the response. "
+    "If you get the same result from multiple tool calls, don't try again."
+)
 MODEL = "mistral-small-latest"
-TOOLS = [
-    {
-        "type": "function",
-        "function": {
-            "name": "list_files",
-            "description": "List all of the files within a directory.",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "dirpath": {
-                        "type": "string",
-                        "description": "The path of the directory.",
-                    }
-                },
-                "required": ["dirpath"],
-            },
-        },
-    },
-    {
-        "type": "function",
-        "function": {
-            "name": "read_file",
-            "description": "Read file contents.",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "filepath": {
-                        "type": "string",
-                        "description": "The filepath to be read.",
-                    }
-                },
-                "required": ["filepath"],
-            },
-        },
-    },
-]
-TOOL_REGISTRY = {"list_files": tools.list_files, "read_file": tools.read_file}
 
 
 class Agent:
-    def __init__(self, api_key) -> None:
-        self.client = Mistral(api_key=api_key)
-        self.max_iters = 8
+    def __init__(
+        self,
+        client: Mistral,
+        tools: list[Tool],
+        model: str = MODEL,
+        system_prompt: str = SYSTEM_PROMPT,
+        max_iterations: int = 8,
+    ) -> None:
+        self.client = client
+        self.tools = {tool.name: tool for tool in tools}
+        self.model = model
+        self.system_prompt = system_prompt
+        self.max_iterations = max_iterations
 
-    def run(self, task: str) -> None:
-        iter = 0
+    def run(self, task: str) -> Any:
         messages = [
-            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "system", "content": self.system_prompt},
             {"role": "user", "content": task},
         ]
-        while iter < self.max_iters:
-            response = self.client.chat.complete(
-                model=MODEL, messages=messages, tools=TOOLS
-            )
-            msg = response.choices[0].message
-            logger.info(f"{iter=} {msg}")
-            if msg.tool_calls is not None:
-                if len(msg.tool_calls) > 1:
-                    raise NotImplementedError("Multiple tool calls not supported")
-                tool = msg.tool_calls[0]
-                fname = tool.function.name
-                fargs = json.loads(tool.function.arguments)
-                try:
-                    fn_output = TOOL_REGISTRY[fname](**fargs)
-                except Exception as e:
-                    fn_output = str(e)
-                messages.append(msg)
-                messages.append(
-                    {
-                        "role": "tool",
-                        "content": json.dumps(fn_output),
-                        "name": fname,
-                        "tool_call_id": tool.id,
-                    }
-                )
-                logger.info(f"Tool call: {fname} - {fn_output}")
-                iter += 1
-            else:
-                logger.info(f"Exit loop: {msg}")
-                return msg
+
+        for iteration in range(self.max_iterations):
+            message = self._complete(messages)
+            logger.info("iteration={} message={}", iteration, message)
+
+            if not message.tool_calls:
+                return message
+
+            messages.append(message)
+            for tool_call in message.tool_calls:
+                tool_message = self._execute_tool_call(tool_call)
+                messages.append(tool_message)
+
+        raise RuntimeError(
+            f"Agent exceeded the limit of {self.max_iterations} tool iterations"
+        )
+
+    def _complete(self, messages: list[Any]) -> Any:
+        response = self.client.chat.complete(
+            model=self.model,
+            messages=messages,
+            tools=[tool.schema for tool in self.tools.values()],
+        )
+        return response.choices[0].message
+
+    def _execute_tool_call(self, tool_call: Any) -> dict[str, Any]:
+        name = tool_call.function.name
+
+        try:
+            arguments = json.loads(tool_call.function.arguments)
+            output = self.tools[name].handler(**arguments)
+            content = {"result": output}
+            logger.info("Tool call: {} - {}", name, output)
+        except (json.JSONDecodeError, KeyError, TypeError) as error:
+            content = {"error": str(error)}
+            logger.warning("Invalid tool call: {} - {}", name, error)
+        except Exception as error:
+            content = {"error": str(error)}
+            logger.exception("Tool execution failed: {}", name)
+
+        return {
+            "role": "tool",
+            "content": json.dumps(content),
+            "name": name,
+            "tool_call_id": tool_call.id,
+        }
