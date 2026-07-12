@@ -19,7 +19,13 @@ uv venv
 Install dependencies:
 
 ```sh
-uv pip install -r requirements.txt
+uv sync
+```
+
+Create your local environment file:
+
+```sh
+cp .env.example .env
 ```
 
 Activate the environment:
@@ -28,16 +34,18 @@ Activate the environment:
 source .venv/bin/activate
 ```
 
+Export environment variables:
+
+```sh
+set -a
+source .env
+set +a
+```
+
 ## Usage
 
 Run the agent with a task:
 
 ```sh
-python -m mini_agent.main "xyz"
-```
-
-Add dependencies later by editing `requirements.txt`, then rerun:
-
-```sh
-uv pip install -r requirements.txt
+python -m mini_agent.main "Hello world"
 ```

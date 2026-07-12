@@ -4,7 +4,10 @@ version = "0.1.0"
 description = "A barebones Python agent project."
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "loguru>=0.7.3",
+    "mistralai==2.6.0",
+]
 
 [build-system]
 requires = ["hatchling"]
