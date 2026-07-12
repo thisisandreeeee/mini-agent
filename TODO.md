@@ -36,16 +36,16 @@ The agent explores unrelated directories such as `.venv` instead of recognising 
 
 ### TODO
 
-- [ ] Make the agent distinguish between insufficient exploration and insufficient capability.
-- [ ] Make it stop when the available tools cannot answer the task.
-- [ ] Make it explain which capability is missing.
-- [ ] Make it suggest a `read_file` tool.
+- [x] Make the agent distinguish between insufficient exploration and insufficient capability.
+- [x] Make it stop when the available tools cannot answer the task.
+- [x] Make it explain which capability is missing.
+- [x] Make it suggest a `read_file` tool.
 
 ### Acceptance criteria
 
-- [ ] The agent does not inspect `.venv`.
-- [ ] The agent does not exhaust the tool-call budget.
-- [ ] The final response clearly states that file-reading capability is required.
+- [x] The agent does not inspect `.venv`.
+- [x] The agent does not exhaust the tool-call budget.
+- [x] The final response clearly states that file-reading capability is required.
 
 ---
 
