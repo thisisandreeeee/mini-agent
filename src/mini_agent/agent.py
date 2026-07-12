@@ -7,9 +7,8 @@ from mistralai.client import Mistral
 from .tool_registry import Tool
 
 SYSTEM_PROMPT = (
-    "You are a helpful assistant with access to tools. If a tool does not help, "
-    "simply return the response. If you get the same result from multiple tool "
-    "calls, don't try again."
+    "You are a helpful assistant with access to tools. If a tool does not help, simply return the response. "
+    "If you get the same result from multiple tool calls, don't try again."
 )
 MODEL = "mistral-small-latest"
 
