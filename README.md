@@ -44,7 +44,15 @@ set +a
 
 ## Usage
 
-Run the agent with a task:
+Start an interactive session:
+
+```sh
+python -m mini_agent.main
+```
+
+Enter messages at the `You:` prompt. The agent keeps the full conversation context,
+including tool calls and results, until you enter `/kill`. You can optionally provide
+the first message on the command line:
 
 ```sh
 python -m mini_agent.main "Hello world"

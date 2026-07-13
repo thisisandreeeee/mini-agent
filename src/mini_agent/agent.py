@@ -24,33 +24,47 @@ class Agent:
         self.model = model
         self.system_prompt = system_prompt
         self.max_iterations = max_iterations
+        self.messages: list[Any] = []
+        self.reset()
 
     def run(self, task: str) -> Any:
+        """Run a task in a new conversation.
+
+        Use ``chat`` for subsequent turns that should share conversation history.
+        """
+        self.reset()
+        return self.chat(task)
+
+    def reset(self) -> None:
+        """Start a new conversation."""
+        self.messages = [{"role": "system", "content": self.system_prompt}]
+
+    def chat(self, message: str) -> Any:
+        """Send one message while preserving context from earlier turns."""
         self.tool_call_counter = {}
-        messages = [
-            {"role": "system", "content": self.system_prompt},
-            {"role": "user", "content": task},
-        ]
+        self.messages.append({"role": "user", "content": message})
 
         for iteration in range(self.max_iterations):
-            message = self._complete(messages)
-            logger.info("iteration={} message={}", iteration, message)
+            response_message = self._complete(self.messages)
+            logger.info("iteration={} message={}", iteration, response_message)
+            self.messages.append(response_message)
 
-            if not message.tool_calls:
-                return message
+            if not response_message.tool_calls:
+                return response_message
 
-            messages.append(message)
-            for tool_call in message.tool_calls:
+            for tool_call in response_message.tool_calls:
                 tool_message = self._execute_tool_call(tool_call)
-                messages.append(tool_message)
+                self.messages.append(tool_message)
 
-        messages.append(
+        self.messages.append(
             {
                 "role": "user",
                 "content": "You have reached the maximum allowable iterations. Do not call another tool. Explain why the available tools could not complete the task and summarise any repeated unsuccessful approach.",
             }
         )
-        return self._complete(messages)
+        response_message = self._complete(self.messages)
+        self.messages.append(response_message)
+        return response_message
 
     def _complete(self, messages: list[Any]) -> Any:
         response = self.client.chat.complete(
