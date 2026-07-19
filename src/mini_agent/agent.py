@@ -32,14 +32,6 @@ class Agent:
         self.messages: list[Any] = []
         self.reset()
 
-    def run(self, task: str) -> Any:
-        """Run a task in a new conversation.
-
-        Use ``chat`` for subsequent turns that should share conversation history.
-        """
-        self.reset()
-        return self.chat(task)
-
     def reset(self) -> None:
         """Start a new conversation."""
         self.messages = [{"role": "system", "content": self.system_prompt}]
