@@ -111,6 +111,12 @@ class Agent:
             }, ok
 
         try:
+            if self.tools[name].requires_approval:
+                approval_text = input(
+                    f"Approval required to execute {name} with {arguments=}.\nProceed? [y/N]"
+                )
+                if approval_text.strip().lower() != "y":
+                    raise Exception(f"Approval not granted for tool_call {name}.")
             output = self.tools[name].handler(**json.loads(arguments))
             content = {"result": output}
             logger.info("Tool call: {} - {}", name, output[:MAX_LOG_LENGTH])

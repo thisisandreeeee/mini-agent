@@ -11,6 +11,7 @@ class Tool:
     description: str
     parameters: dict[str, Any]
     handler: Callable[..., Any]
+    requires_approval: bool
 
     @property
     def schema(self) -> dict[str, Any]:
@@ -39,6 +40,7 @@ DEFAULT_TOOLS = [
             "required": ["dirpath"],
         },
         handler=tools.list_files,
+        requires_approval=False,
     ),
     Tool(
         name="read_file",
@@ -54,6 +56,7 @@ DEFAULT_TOOLS = [
             "required": ["filepath"],
         },
         handler=tools.read_file,
+        requires_approval=True,
     ),
     Tool(
         name="retrieve_kestrel_information",
@@ -68,5 +71,6 @@ DEFAULT_TOOLS = [
             },
         },
         handler=tools.retrieve_kestrel_information,
+        requires_approval=False,
     ),
 ]
