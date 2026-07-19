@@ -55,4 +55,18 @@ DEFAULT_TOOLS = [
         },
         handler=tools.read_file,
     ),
+    Tool(
+        name="retrieve_kestrel_information",
+        description="Retrieve company information specific to Kestrel Analytics.",
+        parameters={
+            "type": "object",
+            "properties": {
+                "query": {
+                    "type": "string",
+                    "description": "The query that should be used to retrieve relevant results.",
+                }
+            },
+        },
+        handler=tools.retrieve_kestrel_information,
+    ),
 ]
