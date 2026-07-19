@@ -28,7 +28,7 @@ def main() -> None:
                 pending_message = None
                 continue
 
-            logger.info("Start agent turn")
+            logger.info(f"Start agent turn. Message count: {len(agent.messages)}")
             response = agent.chat(pending_message)
             print(f"Agent: {response.content}")
             pending_message = None

@@ -6,8 +6,13 @@ from mistralai.client import Mistral
 
 from .tool_registry import Tool
 
-SYSTEM_PROMPT = """You are a helpful assistant with access to tools."""
+SYSTEM_PROMPT = """You are a helpful assistant for Kestrel Analytics.
+
+In this environment you have access to a set of tools you can use to answer the user's question.
+Whenever you state a fact, you must cite your source.
+"""
 MODEL = "mistral-small-latest"
+MAX_LOG_LENGTH = 300
 
 
 class Agent:
@@ -53,8 +58,17 @@ class Agent:
                 return response_message
 
             for tool_call in response_message.tool_calls:
-                tool_message = self._execute_tool_call(tool_call)
+                tool_message, tool_ok = self._execute_tool_call(tool_call)
                 self.messages.append(tool_message)
+                if not tool_ok:
+                    self.messages.append(
+                        {
+                            "role": "user",
+                            "content": "The tool call failed. Clearly explain the error to the user, including what went wrong and any relevant error details. Do not attempt to answer the original question because the required information was not retrieved. Where appropriate, suggest what the user can do next.",
+                        }
+                    )
+                    err_message = self._complete(self.messages)
+                    return err_message
 
         self.messages.append(
             {
@@ -76,6 +90,7 @@ class Agent:
         return response.choices[0].message
 
     def _execute_tool_call(self, tool_call: Any) -> dict[str, Any]:
+        ok = False
         name = tool_call.function.name
         arguments = tool_call.function.arguments
 
@@ -93,12 +108,13 @@ class Agent:
                 ),
                 "name": name,
                 "tool_call_id": tool_call.id,
-            }
+            }, ok
 
         try:
             output = self.tools[name].handler(**json.loads(arguments))
             content = {"result": output}
-            logger.info("Tool call: {} - {}", name, output)
+            logger.info("Tool call: {} - {}", name, output[:MAX_LOG_LENGTH])
+            ok = True
         except (json.JSONDecodeError, KeyError, TypeError) as error:
             content = {"error": str(error)}
             logger.warning("Invalid tool call: {} - {}", name, error)
@@ -112,4 +128,4 @@ class Agent:
             "content": json.dumps(content),
             "name": name,
             "tool_call_id": tool_call.id,
-        }
+        }, ok
